@@ -274,8 +274,14 @@ class MultiThreadDownloader(private val context: Context) {
 
     private fun parseFileNameFromDisposition(disposition: String?): String? {
         if (disposition.isNullOrBlank()) return null
-        val regex = Regex("filename\*?=(?:UTF-8'')?"?([^";]+)"?", RegexOption.IGNORE_CASE)
-        return regex.find(disposition)?.groupValues?.getOrNull(1)?.trim()
+        val part = disposition.substringAfter("filename*=", "")
+            .ifBlank { disposition.substringAfter("filename=", "") }
+        if (part.isBlank()) return null
+        return part.substringAfter("UTF-8''")
+            .substringBefore(";")
+            .trim()
+            .trim('"')
+            .ifBlank { null }
     }
 
     private fun guessFileNameFromUrl(url: String): String {
@@ -289,8 +295,10 @@ class MultiThreadDownloader(private val context: Context) {
     }
 
     private fun sanitizeFileName(name: String): String {
-        return name.replace(Regex("[\\/:*?"<>|]"), "_").trim().ifBlank {
-            "SFIDM_${System.currentTimeMillis()}.bin"
-        }
+        val invalidChars = setOf('\\', '/', ':', '*', '?', '"', '<', '>', '|')
+        return name.map { if (it in invalidChars) '_' else it }
+            .joinToString("")
+            .trim()
+            .ifBlank { "SFIDM_${System.currentTimeMillis()}.bin" }
     }
 }
