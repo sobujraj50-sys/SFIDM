@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
         if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
             val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
             if (!sharedText.isNullOrBlank()) {
-                val url = Regex("https?://\S+").find(sharedText)?.value ?: sharedText
+                val url = Regex("https?://\\S+").find(sharedText)?.value ?: sharedText
                 sharedUrlState.value = url
             }
         }
